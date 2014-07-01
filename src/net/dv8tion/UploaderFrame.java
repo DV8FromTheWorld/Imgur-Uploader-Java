@@ -16,12 +16,19 @@
 
 package net.dv8tion;
 
+import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Insets;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.net.URI;
 import java.util.LinkedList;
+import java.util.concurrent.ExecutionException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -53,17 +60,15 @@ public class UploaderFrame extends JFrame implements ActionListener
     {
         UploaderFrame f = new UploaderFrame();
         f.setVisible(true);
-//        LinkedList<String> imageIds = new LinkedList<String>();
-//        imageIds.add("0AJX5Kc");
-//        imageIds.add("1pvAMrc");
-//        imageIds.add("T7FIUlT");
-//        System.out.println(Uploader.createAlbum(imageIds));        
+        f.imageIds.add("0AJX5Kc");
+        f.imageIds.add("1pvAMrc");
+        f.imageIds.add("T7FIUlT");
+        SwingWorker s = f.getAlbumWorker();
+        s.run();
     }
     
-    private SwingWorker uploader;
-    private SwingWorker uploaderAlbum;
     private LinkedList<File> imagesToUpload;
-    private LinkedList<String> albumIds;
+    private LinkedList<String> imageIds;
     private String url;
     private boolean uploading;
     
@@ -92,6 +97,63 @@ public class UploaderFrame extends JFrame implements ActionListener
      * Does not call .setVisible(true), this will need to be done after creation.
      */
     public UploaderFrame()
+    {
+        initVisualComponents();
+        imagesToUpload = new LinkedList<File>();
+        imageIds = new LinkedList<String>();
+        uploading = false;
+    }
+
+    /**
+     * Controls what happens when any of the buttons are pressed.
+     * 
+     * @param e
+     *          The event of the button click.
+     */
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+        Object source = e.getSource();
+        if (source == btnUpload)
+        {
+            upload();
+        }
+        else if (source == btnPreview)
+        {
+            
+        }
+        else if (source == btnCustomCapture)
+        {
+            
+        }
+        else if (source == btnOpenBrowser)
+        {
+            Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+            if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+                try
+                {
+                    desktop.browse(new URI(url));
+                }
+                catch (Exception ex)
+                {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        else if (source == btnCopyLink)
+        {
+            Toolkit.getDefaultToolkit()
+                .getSystemClipboard()
+                .setContents(new StringSelection(url), null);
+            uploadButtonStatus();
+        }
+    }
+    
+    /**
+     * Initializes all visual components of the GUI and adds them to the GUI.
+     * Also sets the GUI's settings.
+     */
+    private void initVisualComponents()
     {
         this.setTitle("Imgur Uploader");
         this.setSize(SIZE_GUI_X, SIZE_GUI_Y);
@@ -132,6 +194,7 @@ public class UploaderFrame extends JFrame implements ActionListener
         btnOpenBrowser.setLocation(15, 208);
         btnOpenBrowser.setSize(100, BUTTON_HEIGHT);
         btnOpenBrowser.addActionListener(this);
+        btnOpenBrowser.setEnabled(false);
         
         btnCopyLink = new JButton();
         btnCopyLink.setText("Copy Link");
@@ -140,6 +203,7 @@ public class UploaderFrame extends JFrame implements ActionListener
         btnCopyLink.setLocation(152, 208);
         btnCopyLink.setSize(100, BUTTON_HEIGHT);
         btnCopyLink.addActionListener(this);
+        btnCopyLink.setEnabled(false);
         
         lblLink = new JTextArea();
         lblLink.setText("NO CURRENT LINK");
@@ -175,37 +239,143 @@ public class UploaderFrame extends JFrame implements ActionListener
         panel.add(lblUploadMessage);
         this.add(panel);
     }
-
-    /**
-     * Controls what happens when any of the buttons are pressed.
-     * 
-     * @param e
-     *          The event of the button click.
-     */
-    @Override
-    public void actionPerformed(ActionEvent e)
+    
+    private void upload()
     {
-        Object source = e.getSource();
-        if (source == btnUpload)
+        //LoadImages();
+        if (imagesToUpload.size() > 1)
         {
-            
+            lblLink.setText("Uploading " + imagesToUpload.size() + " images..."
+                + " Completed: 0%");
+            getAlbumWorker().run();
         }
-        else if (source == btnPreview)
+        else
         {
-            
+            lblLink.setText("Uploading and fetching URL...");
+            getUploadWorker().run();
         }
-        else if (source == btnCustomCapture)
+        btnUpload.setEnabled(false);
+        btnPreview.setEnabled(false);
+        //menuUpload.setEnabled(false);
+        btnOpenBrowser.setEnabled(false);
+        btnCopyLink.setEnabled(false);
+    }
+    
+    /**
+     * Updates the Upload and Preview button statuses.
+     */
+    private void uploadButtonStatus()
+    {
+        if (!uploading)
         {
-            
+            //if (ClipboardContainsImage())
+            {
+                btnUpload.setEnabled(true);
+                //menuUpload.setEnabled(true);
+                btnPreview.setEnabled(true);
+                lblUploadMessage.setText("");
+            }
+            //else
+            {
+                btnUpload.setEnabled(false);
+                //menuUpload.setEnabled(false;
+                btnPreview.setEnabled(false);
+                lblUploadMessage.setText(UPLOAD_MESSAGE);
+            }
         }
-        else if (source == btnOpenBrowser)
-        {
-            
-        }
-        else if (source == btnCopyLink)
-        {
-            
-        }
+    }
+    
+    /**
+     * Displays the link generated from the upload.
+     * Enables the OpenBrowser and CopyLink buttons.
+     */
+    private void uploadComplete()
+    {
+        uploading = false;
+        lblLink.setText(url);
+        uploadButtonStatus();
+        btnOpenBrowser.setEnabled(true);
+        btnCopyLink.setEnabled(true);
+        //ClearImages();
+    }
+    
+    /**
+     * Creates a new instance of a Swing Worker for Image uploading.
+     * 
+     * @return
+     *          A new instance of the ImageUpload Swing worker.
+     */
+    private SwingWorker getUploadWorker()
+    {
+        return new SwingWorker<String, Void>()
+                {
+
+                    @Override
+                    public String doInBackground() throws Exception
+                    {
+                        uploading = true;
+                        return getLink(Uploader.upload(imagesToUpload.get(0)));
+                    }
+                    
+                    @Override
+                    public void done()
+                    {
+                        try
+                        {
+                            url = get();
+                            uploadComplete();
+                        }
+                        catch (InterruptedException e)
+                        {
+                            e.printStackTrace();
+                        }
+                        catch (ExecutionException e)
+                        {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+    }
+    
+    /**
+     * Creates a new instance of a Swing Worker for Album uploading.
+     * 
+     * @return
+     *          A new instance of the Album Swing Worker.
+     */
+    private SwingWorker getAlbumWorker()
+    {
+        return new SwingWorker<String, Void>()
+                {
+                    @Override
+                    public String doInBackground() throws Exception
+                    {
+                        uploading = true;
+                        for (File f : imagesToUpload)
+                        {
+                            imageIds.add(getId(Uploader.upload(f)));
+                        }
+                        return getId(Uploader.createAlbum(imageIds));
+                    }
+                    
+                    @Override
+                    public void done()
+                    {
+                        try
+                        {
+                            url = "https://imgur.com/a/" + get();
+                            uploadComplete();
+                        }
+                        catch (InterruptedException e)
+                        {
+                            e.printStackTrace();
+                        }
+                        catch (ExecutionException e)
+                        {
+                            e.printStackTrace();
+                        }
+                    }
+                };
     }
     
     /**
@@ -217,5 +387,37 @@ public class UploaderFrame extends JFrame implements ActionListener
         SimpleAttributeSet center = new SimpleAttributeSet();
         StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
         doc.setParagraphAttributes(0, doc.getLength(), center, false);
+    }
+    
+    /**
+     * Uses Regex on the provided JSON String to find the 'link' tag.
+     * 
+     * @param jsonResponse
+     *          The JSON response from Imgur.
+     * @return
+     *          The link to the image.
+     */
+    private String getLink(String jsonResponse)
+    {
+        Pattern pattern = Pattern.compile("link\":\"(.*?)\"");
+        Matcher matcher = pattern.matcher(jsonResponse);
+        matcher.find();
+        return matcher.group().replace("link\":\"", "").replace("\"", "").replace("\\/", "/");
+    }
+
+    /**
+     * Uses Regex on the provided JSON String to find the 'id' tag.
+     * 
+     * @param jsonResponse
+     *          The JSON response from Imgur.
+     * @return
+     *          The id of the image or album.
+     */
+    private String getId(String jsonResponse)
+    {
+        Pattern pattern = Pattern.compile("id\":\"(.*?)\"");
+        Matcher matcher = pattern.matcher(jsonResponse);
+        matcher.find();
+        return matcher.group().replace("id\":\"", "").replace("\"", "");
     }
 }
