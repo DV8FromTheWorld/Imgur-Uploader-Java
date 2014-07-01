@@ -67,8 +67,9 @@ public class UploaderFrame extends JFrame implements ActionListener
     private String url;
     private boolean uploading;
     
-    private final int SIZE_GUI_X = 290;
-    private final int SIZE_GUI_Y = 290;
+    public final int SIZE_GUI_X = 290;
+    public final int SIZE_GUI_Y = 290;
+    public final Font FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
     private final int BUTTON_HEIGHT = 20;
     private final Insets MARGIN = new Insets(0, 0, 0, 0);
     private final String UPLOAD_MESSAGE =
@@ -84,9 +85,7 @@ public class UploaderFrame extends JFrame implements ActionListener
     
     private JTextArea lblLink;
     private JLabel lblTitle;
-    private JTextPane lblUploadMessage;
-    
-    private Font font = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
+    private JTextPane lblUploadMessage;    
 
     /**
      * Creates a new UploaderFrame GUI, completely setup.
@@ -104,7 +103,7 @@ public class UploaderFrame extends JFrame implements ActionListener
         
         btnUpload = new JButton();
         btnUpload.setText("Upload");
-        btnUpload.setFont(font);
+        btnUpload.setFont(FONT);
         btnUpload.setMargin(MARGIN);
         btnUpload.setLocation(93, 39);
         btnUpload.setSize(104, 38);
@@ -112,7 +111,7 @@ public class UploaderFrame extends JFrame implements ActionListener
         
         btnPreview = new JButton();
         btnPreview.setText("Preview");
-        btnPreview.setFont(font);
+        btnPreview.setFont(FONT);
         btnPreview.setMargin(MARGIN);
         btnPreview.setLocation(110, 15);
         btnPreview.setSize(70, BUTTON_HEIGHT);
@@ -120,7 +119,7 @@ public class UploaderFrame extends JFrame implements ActionListener
         
         btnCustomCapture = new JButton();
         btnCustomCapture.setText("Custom Screen Capture");
-        btnCustomCapture.setFont(font);
+        btnCustomCapture.setFont(FONT);
         btnCustomCapture.setMargin(MARGIN);
         btnCustomCapture.setLocation(74, 130);
         btnCustomCapture.setSize(140, BUTTON_HEIGHT);
@@ -128,7 +127,7 @@ public class UploaderFrame extends JFrame implements ActionListener
         
         btnOpenBrowser = new JButton();
         btnOpenBrowser.setText("Open in Browser");
-        btnOpenBrowser.setFont(font);
+        btnOpenBrowser.setFont(FONT);
         btnOpenBrowser.setMargin(MARGIN);
         btnOpenBrowser.setLocation(15, 208);
         btnOpenBrowser.setSize(100, BUTTON_HEIGHT);
@@ -136,7 +135,7 @@ public class UploaderFrame extends JFrame implements ActionListener
         
         btnCopyLink = new JButton();
         btnCopyLink.setText("Copy Link");
-        btnCopyLink.setFont(font);
+        btnCopyLink.setFont(FONT);
         btnCopyLink.setMargin(MARGIN);
         btnCopyLink.setLocation(152, 208);
         btnCopyLink.setSize(100, BUTTON_HEIGHT);
@@ -144,7 +143,7 @@ public class UploaderFrame extends JFrame implements ActionListener
         
         lblLink = new JTextArea();
         lblLink.setText("NO CURRENT LINK");
-        lblLink.setFont(font);
+        lblLink.setFont(FONT);
         lblLink.setLocation(88, 160);
         lblLink.setSize(190, 40);
         lblLink.setBackground(null);
@@ -154,7 +153,7 @@ public class UploaderFrame extends JFrame implements ActionListener
         
         lblTitle = new JLabel();
         lblTitle.setText("Imgur Link:");
-        lblTitle.setFont(font);
+        lblTitle.setFont(FONT);
         lblTitle.setLocation(15, 157);
         lblTitle.setSize(65, 20);
         
