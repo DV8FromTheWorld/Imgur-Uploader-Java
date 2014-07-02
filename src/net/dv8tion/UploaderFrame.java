@@ -23,6 +23,8 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.net.URI;
 import java.util.LinkedList;
@@ -33,6 +35,7 @@ import java.util.regex.Pattern;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
@@ -48,7 +51,7 @@ import javax.swing.text.StyledDocument;
  * @version Incomplete June 30, 2014
  */
 @SuppressWarnings("serial")
-public class UploaderFrame extends JFrame implements ActionListener
+public class UploaderFrame extends JFrame implements ActionListener, WindowListener
 {
     /**
      * Main entry point of the program.
@@ -60,18 +63,13 @@ public class UploaderFrame extends JFrame implements ActionListener
     {
         UploaderFrame f = new UploaderFrame();
         f.setVisible(true);
-        f.imageIds.add("0AJX5Kc");
-        f.imageIds.add("1pvAMrc");
-        f.imageIds.add("T7FIUlT");
-        SwingWorker s = f.getAlbumWorker();
-        s.run();
+//        f.imageIds.add("0AJX5Kc");
+//        f.imageIds.add("1pvAMrc");
+//        f.imageIds.add("T7FIUlT");
+//        SwingWorker s = f.getAlbumWorker();
+//        s.run();
     }
-    
-    private LinkedList<File> imagesToUpload;
-    private LinkedList<String> imageIds;
-    private String url;
-    private boolean uploading;
-    
+
     public final int SIZE_GUI_X = 290;
     public final int SIZE_GUI_Y = 290;
     public final Font FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
@@ -81,16 +79,21 @@ public class UploaderFrame extends JFrame implements ActionListener
             "Upload and Preview Buttons are disabled\nuntil an image is in the Clipboard.";
     
     private JPanel panel;
-    
+
     private JButton btnUpload;
     private JButton btnPreview;
     private JButton btnCustomCapture;
     private JButton btnOpenBrowser;
     private JButton btnCopyLink;
-    
+
     private JTextArea lblLink;
     private JLabel lblTitle;
-    private JTextPane lblUploadMessage;    
+    private JTextPane lblUploadMessage;
+
+    private LinkedList<File> imagesToUpload;
+    private LinkedList<String> imageIds;
+    private String url;
+    private boolean uploading;
 
     /**
      * Creates a new UploaderFrame GUI, completely setup.
@@ -120,11 +123,11 @@ public class UploaderFrame extends JFrame implements ActionListener
         }
         else if (source == btnPreview)
         {
-            
+            //open image preview window.
         }
         else if (source == btnCustomCapture)
         {
-            
+            //open custom capture window.
         }
         else if (source == btnOpenBrowser)
         {
@@ -148,7 +151,42 @@ public class UploaderFrame extends JFrame implements ActionListener
             uploadButtonStatus();
         }
     }
-    
+
+    /**
+     * Returns the size of the image list.
+     * @return
+     *          The amount of images files in the list to upload.
+     */
+    public int getImageAmount()
+    {
+        return imagesToUpload.size();
+    }
+
+    /**
+     * Gets a specific image file from an index.
+     * 
+     * @param index
+     *          The index of the image file in the image list.
+     * @return
+     *          The file of the image referenced by the index.
+     */
+    public File getImage(int index)
+    {
+        if (index >= 0 && index < imagesToUpload.size())
+        {
+            return imagesToUpload.get(index);
+        }
+        return null;
+    }
+
+    /**
+     * Clears out all of the image file entries in the image list.
+     */
+    public void clearImages()
+    {
+        imagesToUpload.clear();
+    }
+
     /**
      * Initializes all visual components of the GUI and adds them to the GUI.
      * Also sets the GUI's settings.
@@ -157,8 +195,9 @@ public class UploaderFrame extends JFrame implements ActionListener
     {
         this.setTitle("Imgur Uploader");
         this.setSize(SIZE_GUI_X, SIZE_GUI_Y);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         this.setResizable(false);
+        this.addWindowListener(this);
         
         panel = new JPanel();
         panel.setLayout(null);
@@ -239,7 +278,7 @@ public class UploaderFrame extends JFrame implements ActionListener
         panel.add(lblUploadMessage);
         this.add(panel);
     }
-    
+
     private void upload()
     {
         //LoadImages();
@@ -260,7 +299,7 @@ public class UploaderFrame extends JFrame implements ActionListener
         btnOpenBrowser.setEnabled(false);
         btnCopyLink.setEnabled(false);
     }
-    
+
     /**
      * Updates the Upload and Preview button statuses.
      */
@@ -284,7 +323,7 @@ public class UploaderFrame extends JFrame implements ActionListener
             }
         }
     }
-    
+
     /**
      * Displays the link generated from the upload.
      * Enables the OpenBrowser and CopyLink buttons.
@@ -298,7 +337,7 @@ public class UploaderFrame extends JFrame implements ActionListener
         btnCopyLink.setEnabled(true);
         //ClearImages();
     }
-    
+
     /**
      * Creates a new instance of a Swing Worker for Image uploading.
      * 
@@ -336,7 +375,7 @@ public class UploaderFrame extends JFrame implements ActionListener
                     }
                 };
     }
-    
+
     /**
      * Creates a new instance of a Swing Worker for Album uploading.
      * 
@@ -377,7 +416,7 @@ public class UploaderFrame extends JFrame implements ActionListener
                     }
                 };
     }
-    
+
     /**
      * Helper method that sets a JTextPane to have text centering.
      */
@@ -388,7 +427,7 @@ public class UploaderFrame extends JFrame implements ActionListener
         StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
         doc.setParagraphAttributes(0, doc.getLength(), center, false);
     }
-    
+
     /**
      * Uses Regex on the provided JSON String to find the 'link' tag.
      * 
@@ -419,5 +458,95 @@ public class UploaderFrame extends JFrame implements ActionListener
         Matcher matcher = pattern.matcher(jsonResponse);
         matcher.find();
         return matcher.group().replace("id\":\"", "").replace("\"", "");
+    }
+
+    /**
+     * Called when the GUI gains focus.
+     * 
+     * @param ev
+     *          The WindowEvent associated with the window gaining focus.
+     */
+    @Override
+    public void windowActivated(WindowEvent ev)
+    {
+        uploadButtonStatus();
+    }
+
+    /**
+     * Called when the GUI loses focus.
+     * 
+     * @param ev
+     *          The WindowEvent associated with the window losing focus.
+     */
+    @Override
+    public void windowDeactivated(WindowEvent ev)
+    {
+        uploadButtonStatus();
+    }
+
+    /**
+     * Called when the GUI has closed.
+     * 
+     * @param ev
+     *          The WindowEvent associated with the window closing completely.
+     */
+    @Override
+    public void windowClosed(WindowEvent ev)
+    {
+
+    }
+
+    /**
+     * Called when the GUI is told to close (alt-f4, [x] button).
+     * 
+     * @param ev
+     *          The WindowEvent associated with the window closing.
+     */
+    @Override
+    public void windowClosing(WindowEvent ev)
+    {
+        int result = JOptionPane.showConfirmDialog(this, "Are you sure you want to close Imgur Uploader?", "Confirm Exit", JOptionPane.YES_NO_OPTION);
+        if (JOptionPane.YES_OPTION == result)
+        {
+            this.dispose();
+            System.exit(0);
+        }
+    }
+
+
+    /**
+     * Called when the GUI is unminimized.
+     * 
+     * @param ev
+     *          The WindowEvent associated with the window unminimizing.
+     */
+    @Override
+    public void windowDeiconified(WindowEvent ev)
+    {
+        uploadButtonStatus();
+    }
+
+    /**
+     * Called when the GUI is minimized.
+     * 
+     * @param ev
+     *          The WindowEvent associated with the window minimizing.
+     */
+    @Override
+    public void windowIconified(WindowEvent ev)
+    {
+        this.setVisible(false);
+    }
+
+    /**
+     * Called when the GUI is first opened.
+     * 
+     * @param ev
+     *          The WindowEvent associated with the window opening.
+     */
+    @Override
+    public void windowOpened(WindowEvent ev)
+    {
+        uploadButtonStatus();
     }
 }
