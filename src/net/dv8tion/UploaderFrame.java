@@ -18,19 +18,26 @@ package net.dv8tion;
 
 import java.awt.AWTException;
 import java.awt.Desktop;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Insets;
 import java.awt.MenuItem;
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.PopupMenu;
+import java.awt.Rectangle;
 import java.awt.SystemTray;
 import java.awt.Toolkit;
 import java.awt.TrayIcon;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
@@ -111,6 +118,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     private LinkedList<String> imageIds;
     private String url;
     private boolean uploading;
+    private Rectangle currentLoc;
 
     /**
      * Creates a new UploaderFrame GUI, completely setup.
@@ -223,6 +231,14 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         this.setResizable(false);
         this.addWindowListener(this);
+        this.addMouseListener(new MouseAdapter()
+        {
+            @Override
+            public void mousePressed(MouseEvent e)
+            {
+                updateLocation();
+            }
+        });
         
         panel = new JPanel();
         panel.setLayout(null);
@@ -389,6 +405,16 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
                 lblUploadMessage.setText(UPLOAD_MESSAGE);
             }
         }
+    }
+
+    /**
+     * Updates the location of the window for use in minimization logic.
+     */
+    private void updateLocation()
+    {
+        Point p = this.getLocationOnScreen();
+        Dimension d = this.getSize();
+        currentLoc = new Rectangle(p.x, p.y, d.width, d.height);
     }
 
     /**
@@ -559,6 +585,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     @Override
     public void windowActivated(WindowEvent ev)
     {
+        updateLocation();
         uploadButtonStatus();
     }
 
@@ -620,7 +647,11 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     @Override
     public void windowIconified(WindowEvent ev)
     {
-        this.setVisible(false);
+        Point mp = MouseInfo.getPointerInfo().getLocation();
+        if (currentLoc.contains(mp))
+        {
+            this.setVisible(false);
+        }
     }
 
     /**
