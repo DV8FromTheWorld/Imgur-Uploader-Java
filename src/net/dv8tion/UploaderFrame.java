@@ -16,13 +16,21 @@
 
 package net.dv8tion;
 
+import java.awt.AWTException;
 import java.awt.Desktop;
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.Insets;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
+import java.awt.SystemTray;
 import java.awt.Toolkit;
+import java.awt.TrayIcon;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
@@ -32,6 +40,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -80,6 +89,14 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     
     private JPanel panel;
 
+    private TrayIcon trayIcon;
+    private PopupMenu menu;
+    private ImageIcon imageIcon;
+
+    private MenuItem menuShow;
+    private MenuItem menuUpload;
+    private MenuItem menuExit;
+
     private JButton btnUpload;
     private JButton btnPreview;
     private JButton btnCustomCapture;
@@ -117,7 +134,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     public void actionPerformed(ActionEvent e)
     {
         Object source = e.getSource();
-        if (source == btnUpload)
+        if (source == btnUpload || source == menuUpload)
         {
             upload();
         }
@@ -149,6 +166,14 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
                 .getSystemClipboard()
                 .setContents(new StringSelection(url), null);
             uploadButtonStatus();
+        }
+        else if (source == menuShow)
+        {
+            showProgram();
+        }
+        else if (source == menuExit)
+        {
+            handleClosing();
         }
     }
 
@@ -201,7 +226,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         
         panel = new JPanel();
         panel.setLayout(null);
-        
+
         btnUpload = new JButton();
         btnUpload.setText("Upload");
         btnUpload.setFont(FONT);
@@ -267,7 +292,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         lblUploadMessage.setBackground(null);
         lblUploadMessage.setEditable(false);
         setupTextCentering(lblUploadMessage);
-        
+
         panel.add(btnUpload);
         panel.add(btnPreview);
         panel.add(btnCustomCapture);
@@ -277,6 +302,48 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         panel.add(lblTitle);
         panel.add(lblUploadMessage);
         this.add(panel);
+
+        imageIcon = new ImageIcon(getClass().getResource("/assets/icon.png"), "Icon");
+        this.setIconImage(imageIcon.getImage());
+
+        menuShow = new MenuItem("Show");
+        menuShow.addActionListener(this);
+        menuShow.setFont(FONT);
+
+        menuUpload = new MenuItem("Upload");
+        menuUpload.addActionListener(this);
+        menuUpload.setFont(FONT);
+
+        menuExit = new MenuItem("Exit");
+        menuExit.addActionListener(this);
+        menuExit.setFont(FONT);
+
+        menu = new PopupMenu();
+        menu.add(menuShow);
+        menu.add(menuUpload);
+        menu.add(menuExit);
+
+        trayIcon = new TrayIcon(imageIcon.getImage(), "Imgur Uploader", menu);
+        trayIcon.setImageAutoSize(true);
+        trayIcon.addMouseListener(new MouseAdapter()
+        {
+            @Override
+            public void mouseClicked(MouseEvent evt)
+            {
+                if (evt.getModifiers() == MouseEvent.BUTTON1_MASK)
+                {
+                    showProgram();
+                }
+            }
+        });
+        try
+        {
+            SystemTray.getSystemTray().add(trayIcon);
+        }
+        catch (AWTException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     private void upload()
@@ -295,7 +362,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         }
         btnUpload.setEnabled(false);
         btnPreview.setEnabled(false);
-        //menuUpload.setEnabled(false);
+        menuUpload.setEnabled(false);
         btnOpenBrowser.setEnabled(false);
         btnCopyLink.setEnabled(false);
     }
@@ -310,14 +377,14 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
             //if (ClipboardContainsImage())
             {
                 btnUpload.setEnabled(true);
-                //menuUpload.setEnabled(true);
+                menuUpload.setEnabled(true);
                 btnPreview.setEnabled(true);
                 lblUploadMessage.setText("");
             }
             //else
             {
                 btnUpload.setEnabled(false);
-                //menuUpload.setEnabled(false;
+                menuUpload.setEnabled(false);
                 btnPreview.setEnabled(false);
                 lblUploadMessage.setText(UPLOAD_MESSAGE);
             }
@@ -335,7 +402,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         uploadButtonStatus();
         btnOpenBrowser.setEnabled(true);
         btnCopyLink.setEnabled(true);
-        //ClearImages();
+        clearImages();
     }
 
     /**
@@ -344,7 +411,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
      * @return
      *          A new instance of the ImageUpload Swing worker.
      */
-    private SwingWorker getUploadWorker()
+    private SwingWorker<String, Void> getUploadWorker()
     {
         return new SwingWorker<String, Void>()
                 {
@@ -382,7 +449,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
      * @return
      *          A new instance of the Album Swing Worker.
      */
-    private SwingWorker getAlbumWorker()
+    private SwingWorker<String, Void> getAlbumWorker()
     {
         return new SwingWorker<String, Void>()
                 {
@@ -461,6 +528,29 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     }
 
     /**
+     * Shows the program in the TaskBar and unminimizes it.
+     */
+    private void showProgram()
+    {
+        this.setExtendedState(Frame.NORMAL);
+        this.setVisible(true);
+        this.toFront();
+    }
+
+    /**
+     * Method that handles closing.  Asks user if they are sure they want to close.
+     */
+    private void handleClosing()
+    {
+        int result = JOptionPane.showConfirmDialog(this, "Are you sure you want to close Imgur Uploader?", "Confirm Exit", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, imageIcon);
+        if (JOptionPane.YES_OPTION == result)
+        {
+            this.dispose();
+            System.exit(0);
+        }
+    }
+
+    /**
      * Called when the GUI gains focus.
      * 
      * @param ev
@@ -505,12 +595,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     @Override
     public void windowClosing(WindowEvent ev)
     {
-        int result = JOptionPane.showConfirmDialog(this, "Are you sure you want to close Imgur Uploader?", "Confirm Exit", JOptionPane.YES_NO_OPTION);
-        if (JOptionPane.YES_OPTION == result)
-        {
-            this.dispose();
-            System.exit(0);
-        }
+        handleClosing();
     }
 
 
