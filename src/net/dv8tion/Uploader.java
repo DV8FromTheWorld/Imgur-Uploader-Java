@@ -41,9 +41,6 @@ public class Uploader
     //CHANGE TO @CLIENT_ID@ and replace with buildscript.
     private final static String CLIENT_ID = "efce6070269a7f1";
 
-    //CHANGE TO @CLIENT_SECRET@ and replace with buildscript.
-    private final static String CLIENT_SECRET = "bc038b940212ad28e0de3eddea1a18375434b143";
-
     /**
      * Takes a file and uploads it to Imgur.
      * Does not check to see if the file is an image, this should be done
