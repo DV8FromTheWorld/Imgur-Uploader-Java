@@ -44,6 +44,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javafx.scene.input.Clipboard;
+
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -141,6 +143,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         Object source = e.getSource();
         if (source == btnUpload || source == menuUpload)
         {
+            showProgram();
             upload();
         }
         else if (source == btnPreview)
@@ -361,7 +364,8 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
 
     private void upload()
     {
-        //LoadImages();
+        uploading = true;
+        //loadImages();
         if (imagesToUpload.size() > 1)
         {
             lblLink.setText("Uploading " + imagesToUpload.size() + " images..."
@@ -378,6 +382,33 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         menuUpload.setEnabled(false);
         btnOpenBrowser.setEnabled(false);
         btnCopyLink.setEnabled(false);
+    }
+    
+    /**
+     * Checks to see that there are images in the clipboard to upload.
+     * 
+     * @return
+     * 			True if there is 1 or more images in the clipboard.
+     */
+    private boolean clipboardContainsImage()
+    {
+        //loadImages();
+        int count = imagesToUpload.size();
+        clearImages();
+        return count > 0;
+    }
+
+    /**
+     * Loads files and checks to see that they are images.
+     */
+    private void loadImages()
+    {
+        clearImages();
+        final Clipboard clipboard = Clipboard.getSystemClipboard();
+        if (clipboard.hasImage())
+        {
+	
+        }
     }
 
     /**
@@ -442,7 +473,6 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
                     @Override
                     public String doInBackground() throws Exception
                     {
-                        uploading = true;
                         return getLink(Uploader.upload(imagesToUpload.get(0)));
                     }
                     
@@ -479,7 +509,6 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
                     @Override
                     public String doInBackground() throws Exception
                     {
-                        uploading = true;
                         for (File f : imagesToUpload)
                         {
                             imageIds.add(getId(Uploader.upload(f)));
