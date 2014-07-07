@@ -30,22 +30,27 @@ import java.awt.Rectangle;
 import java.awt.SystemTray;
 import java.awt.Toolkit;
 import java.awt.TrayIcon;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javafx.scene.input.Clipboard;
-
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -85,6 +90,8 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
 //        s.run();
     }
 
+    public static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+
     public final int SIZE_GUI_X = 290;
     public final int SIZE_GUI_Y = 290;
     public final Font FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
@@ -113,8 +120,8 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     private JLabel lblTitle;
     private JTextPane lblUploadMessage;
 
-    private LinkedList<File> imagesToUpload;
-    private LinkedList<String> imageIds;
+    private ArrayList<File> imagesToUpload;
+    private ArrayList<String> imageIds;
     private String url;
     private boolean uploading;
     private Rectangle currentLoc;
@@ -126,8 +133,8 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     public UploaderFrame()
     {
         initVisualComponents();
-        imagesToUpload = new LinkedList<File>();
-        imageIds = new LinkedList<String>();
+        imagesToUpload = new ArrayList<File>();
+        imageIds = new ArrayList<String>();
         uploading = false;
     }
 
@@ -365,17 +372,17 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     private void upload()
     {
         uploading = true;
-        //loadImages();
+        loadImages();
         if (imagesToUpload.size() > 1)
         {
             lblLink.setText("Uploading " + imagesToUpload.size() + " images..."
                 + " Completed: 0%");
-            getAlbumWorker().run();
+            getAlbumWorker().execute();
         }
         else
         {
             lblLink.setText("Uploading and fetching URL...");
-            getUploadWorker().run();
+            getUploadWorker().execute();
         }
         btnUpload.setEnabled(false);
         btnPreview.setEnabled(false);
@@ -392,7 +399,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
      */
     private boolean clipboardContainsImage()
     {
-        //loadImages();
+        loadImages();
         int count = imagesToUpload.size();
         clearImages();
         return count > 0;
@@ -401,13 +408,51 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     /**
      * Loads files and checks to see that they are images.
      */
+    @SuppressWarnings("unchecked")
     private void loadImages()
     {
         clearImages();
-        final Clipboard clipboard = Clipboard.getSystemClipboard();
-        if (clipboard.hasImage())
+        if (clipboard.isDataFlavorAvailable(DataFlavor.imageFlavor))
         {
-	
+            try
+            {
+                BufferedImage image = (BufferedImage) clipboard.getData(DataFlavor.imageFlavor);
+                File imageFile = new File("ClipboardImage.png");
+                ImageIO.write(image, "png", imageFile);
+                imagesToUpload.add(imageFile);
+            }
+            catch (UnsupportedFlavorException e)
+            {
+                e.printStackTrace();
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+            return;
+        }
+        if (clipboard.isDataFlavorAvailable(DataFlavor.javaFileListFlavor))
+        {
+            try
+            {
+                for (File f : (List<File>) clipboard.getData(DataFlavor.javaFileListFlavor))
+                {
+                    System.out.println(f.getName());
+                    if (!f.isDirectory())
+                    {
+                        imagesToUpload.add(f);
+                    }
+                }
+            }
+            catch (UnsupportedFlavorException e)
+            {
+                e.printStackTrace();
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+            return;
         }
     }
 
@@ -418,14 +463,14 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     {
         if (!uploading)
         {
-            //if (ClipboardContainsImage())
+            if (clipboardContainsImage())
             {
                 btnUpload.setEnabled(true);
                 menuUpload.setEnabled(true);
                 btnPreview.setEnabled(true);
                 lblUploadMessage.setText("");
             }
-            //else
+            else
             {
                 btnUpload.setEnabled(false);
                 menuUpload.setEnabled(false);
