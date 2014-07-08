@@ -68,7 +68,7 @@ import javax.swing.text.StyledDocument;
  * Core class of the program.  Controls the central GUI and core logic.
  * 
  * @author DV8FromTheWorld (Austin Keener)
- * @version Incomplete June 30, 2014
+ * @version v1.0  July 8, 2014
  */
 @SuppressWarnings("serial")
 public class UploaderFrame extends JFrame implements ActionListener, WindowListener
@@ -437,8 +437,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
             {
                 for (File f : (List<File>) clipboard.getData(DataFlavor.javaFileListFlavor))
                 {
-                    System.out.println(f.getName());
-                    if (!f.isDirectory())
+                    if (!f.isDirectory() && ImageIO.read(f) != null)
                     {
                         imagesToUpload.add(f);
                     }
@@ -567,6 +566,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
                         try
                         {
                             url = "https://imgur.com/a/" + get();
+                            imageIds.clear();
                             uploadComplete();
                         }
                         catch (InterruptedException e)
