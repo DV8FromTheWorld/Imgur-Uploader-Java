@@ -42,9 +42,11 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
@@ -102,6 +104,12 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     private final Insets MARGIN = new Insets(0, 0, 0, 0);
     private final String UPLOAD_MESSAGE =
             "Upload and Preview Buttons are disabled\nuntil an image is in the Clipboard.";
+
+    private final byte[] PNG_SIGNATURE = {(byte) 0x89, 0x50, 0x4e, 0x47};
+    private final byte[] JPG_SIGNATURE = {(byte) 0xff, (byte) 0xd8, (byte) 0xff, (byte) 0xe0};
+    private final byte[] JPG_SIGNATURE2 = {(byte) 0xff, (byte) 0xd8, (byte) 0xff, (byte) 0xe1};
+    private final byte[] GIF_SIGNATURE = {0x47, 0x49, 0x46, 0x38};
+    private final byte[] BMP_SIGNATURE = {0x42, 0x4d};
 
     private JPanel panel;
     private TrayIcon trayIcon;
@@ -437,10 +445,24 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
             {
                 for (File f : (List<File>) CLIPBOARD.getData(DataFlavor.javaFileListFlavor))
                 {
-                    if (!f.isDirectory() && ImageIO.read(f) != null)
+                    if (f.isDirectory())
+                    {
+                        continue;
+                    }
+
+                    byte[] signature = new byte[4];
+                    FileInputStream fis = new FileInputStream(f);
+                    fis.read(signature);
+                    if (Arrays.equals(signature, PNG_SIGNATURE)
+                            || Arrays.equals(signature, JPG_SIGNATURE)
+                            || Arrays.equals(signature, JPG_SIGNATURE2)
+                            || Arrays.equals(signature, GIF_SIGNATURE)
+                            || Arrays.equals(Arrays.copyOf(signature, 2), BMP_SIGNATURE))
                     {
                         imagesToUpload.add(f);
+                        System.out.println("Found an image: " + f.getName());
                     }
+                    fis.close();
                 }
             }
             catch (UnsupportedFlavorException e)
@@ -734,6 +756,6 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     @Override
     public void windowOpened(WindowEvent ev)
     {
-        uploadButtonStatus();
+
     }
 }
