@@ -90,22 +90,23 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
 //        s.run();
     }
 
-    public static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+    public static final Clipboard CLIPBOARD =
+            Toolkit.getDefaultToolkit().getSystemClipboard();
+    public static final ImageIcon IMAGE_ICON =
+            new ImageIcon(UploaderFrame.class.getResource("/assets/icon.png"), "Icon");
+    public static final Font FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
 
     public final int SIZE_GUI_X = 290;
     public final int SIZE_GUI_Y = 290;
-    public final Font FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
     private final int BUTTON_HEIGHT = 20;
     private final Insets MARGIN = new Insets(0, 0, 0, 0);
     private final String UPLOAD_MESSAGE =
             "Upload and Preview Buttons are disabled\nuntil an image is in the Clipboard.";
-    
+
     private JPanel panel;
-
     private TrayIcon trayIcon;
-    private PopupMenu menu;
-    private ImageIcon imageIcon;
 
+    private PopupMenu menu;
     private MenuItem menuShow;
     private MenuItem menuUpload;
     private MenuItem menuExit;
@@ -155,7 +156,8 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         }
         else if (source == btnPreview)
         {
-            //open image preview window.
+            loadImages();
+            new ImagePreview(imagesToUpload).setVisible(true);
         }
         else if (source == btnCustomCapture)
         {
@@ -325,9 +327,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         panel.add(lblTitle);
         panel.add(lblUploadMessage);
         this.add(panel);
-
-        imageIcon = new ImageIcon(getClass().getResource("/assets/icon.png"), "Icon");
-        this.setIconImage(imageIcon.getImage());
+        this.setIconImage(IMAGE_ICON.getImage());
 
         menuShow = new MenuItem("Show");
         menuShow.addActionListener(this);
@@ -346,7 +346,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         menu.add(menuUpload);
         menu.add(menuExit);
 
-        trayIcon = new TrayIcon(imageIcon.getImage(), "Imgur Uploader", menu);
+        trayIcon = new TrayIcon(IMAGE_ICON.getImage(), "Imgur Uploader", menu);
         trayIcon.setImageAutoSize(true);
         trayIcon.addMouseListener(new MouseAdapter()
         {
@@ -412,11 +412,11 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     private void loadImages()
     {
         clearImages();
-        if (clipboard.isDataFlavorAvailable(DataFlavor.imageFlavor))
+        if (CLIPBOARD.isDataFlavorAvailable(DataFlavor.imageFlavor))
         {
             try
             {
-                BufferedImage image = (BufferedImage) clipboard.getData(DataFlavor.imageFlavor);
+                BufferedImage image = (BufferedImage) CLIPBOARD.getData(DataFlavor.imageFlavor);
                 File imageFile = new File("ClipboardImage.png");
                 ImageIO.write(image, "png", imageFile);
                 imagesToUpload.add(imageFile);
@@ -431,11 +431,11 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
             }
             return;
         }
-        if (clipboard.isDataFlavorAvailable(DataFlavor.javaFileListFlavor))
+        if (CLIPBOARD.isDataFlavorAvailable(DataFlavor.javaFileListFlavor))
         {
             try
             {
-                for (File f : (List<File>) clipboard.getData(DataFlavor.javaFileListFlavor))
+                for (File f : (List<File>) CLIPBOARD.getData(DataFlavor.javaFileListFlavor))
                 {
                     if (!f.isDirectory() && ImageIO.read(f) != null)
                     {
@@ -639,7 +639,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
      */
     private void handleClosing()
     {
-        int result = JOptionPane.showConfirmDialog(this, "Are you sure you want to close Imgur Uploader?", "Confirm Exit", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, imageIcon);
+        int result = JOptionPane.showConfirmDialog(this, "Are you sure you want to close Imgur Uploader?", "Confirm Exit", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, IMAGE_ICON);
         if (JOptionPane.YES_OPTION == result)
         {
             this.dispose();
@@ -669,7 +669,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     @Override
     public void windowDeactivated(WindowEvent ev)
     {
-        uploadButtonStatus();
+
     }
 
     /**
