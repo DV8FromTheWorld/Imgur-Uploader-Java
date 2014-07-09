@@ -17,12 +17,12 @@
 package net.dv8tion;
 
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -40,6 +40,7 @@ public class ImagePreview extends JFrame implements ActionListener
 {
     private ImagePanel imagePanel;
     private ArrayList<File> images;
+    private ArrayList<Image> imagesLoaded;
 
     private JMenuBar menuBar;
     private JButton previousButton;
@@ -56,26 +57,36 @@ public class ImagePreview extends JFrame implements ActionListener
      */
     public ImagePreview(ArrayList<File> images)
     {
-        this.images = images;
         this.imageIndex = 0;
-        
+        this.images = images;
+        this.imagesLoaded = new ArrayList<Image>();
+
         imagePanel = new ImagePanel();
         menuBar = new JMenuBar();
-        previousButton = new JButton("Previous Image");
+
+        previousButton = new JButton("Previous");
         previousButton.setFont(UploaderFrame.FONT);
         previousButton.addActionListener(this);
-        nextButton = new JButton("Next Image");
+        previousButton.setMargin(new Insets(0, 0, 0, 0));
+        previousButton.setSize(20, 25);
+
+        nextButton = new JButton("Next");
         nextButton.setFont(UploaderFrame.FONT);
         nextButton.addActionListener(this);
+        nextButton.setMargin(new Insets(0, 0, 0, 0));
+        nextButton.setSize(10, 25);
+
         imageCount = new JLabel("1 / " + images.size());
         imageCount.setFont(UploaderFrame.FONT);
+        imageCount.setSize(5, 15);
+
         menuBar.add(previousButton);
         menuBar.add(nextButton);
         menuBar.add(imageCount);
-        this.setContentPane(imagePanel);
+        this.add(imagePanel);
         this.setJMenuBar(menuBar);
         this.setIconImage(UploaderFrame.IMAGE_ICON.getImage());
-        
+
         loadImage();
         buttonStatusUpdate();
     }
@@ -97,7 +108,6 @@ public class ImagePreview extends JFrame implements ActionListener
         else if (nextButton == source)
         {
             imageIndex++;
-            
             loadImage();
             buttonStatusUpdate();
         }
@@ -108,12 +118,21 @@ public class ImagePreview extends JFrame implements ActionListener
      */
     private void loadImage()
     {
-        Image i = this.getToolkit().createImage(images.get(imageIndex).getAbsolutePath());
-        ImageIcon icon = new ImageIcon(i);
+        Image i;
+        if (imageIndex >= imagesLoaded.size())
+        {
+            i = this.getToolkit().createImage(images.get(imageIndex).getAbsolutePath());
+            imagesLoaded.add(i);
+        }
+        else
+        {
+            i = imagesLoaded.get(imageIndex);
+        }
         imagePanel.setImage(i);        
-        this.setSize(icon.getIconWidth(), icon.getIconHeight());
+        this.pack();
+        repaint();
     }
-    
+
     /**
      * Updates the previous and next buttons.  Also updates the image count.
      */
