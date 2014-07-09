@@ -98,18 +98,18 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
             new ImageIcon(UploaderFrame.class.getResource("/assets/icon.png"), "Icon");
     public static final Font FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
 
+    public static final byte[] PNG_SIGNATURE = {(byte) 0x89, 0x50, 0x4e, 0x47};
+    public static final byte[] JPG_SIGNATURE = {(byte) 0xff, (byte) 0xd8, (byte) 0xff, (byte) 0xe0};
+    public static final byte[] JPG_SIGNATURE2 = {(byte) 0xff, (byte) 0xd8, (byte) 0xff, (byte) 0xe1};
+    public static final byte[] GIF_SIGNATURE = {0x47, 0x49, 0x46, 0x38};
+    public static final byte[] BMP_SIGNATURE = {0x42, 0x4d};
+
     public final int SIZE_GUI_X = 290;
     public final int SIZE_GUI_Y = 290;
     private final int BUTTON_HEIGHT = 20;
     private final Insets MARGIN = new Insets(0, 0, 0, 0);
     private final String UPLOAD_MESSAGE =
             "Upload and Preview Buttons are disabled\nuntil an image is in the Clipboard.";
-
-    private final byte[] PNG_SIGNATURE = {(byte) 0x89, 0x50, 0x4e, 0x47};
-    private final byte[] JPG_SIGNATURE = {(byte) 0xff, (byte) 0xd8, (byte) 0xff, (byte) 0xe0};
-    private final byte[] JPG_SIGNATURE2 = {(byte) 0xff, (byte) 0xd8, (byte) 0xff, (byte) 0xe1};
-    private final byte[] GIF_SIGNATURE = {0x47, 0x49, 0x46, 0x38};
-    private final byte[] BMP_SIGNATURE = {0x42, 0x4d};
 
     private JPanel panel;
     private TrayIcon trayIcon;
