@@ -32,7 +32,7 @@ import javax.swing.JMenuBar;
  * Provides functionality to view images before uploading them.
  * 
  * @author DV8FromTheWorld (Austin Keener)
- * @version v1.0  July 8, 2014
+ * @version v1.1  July 9, 2014
  *
  */
 @SuppressWarnings("serial")
@@ -57,6 +57,9 @@ public class ImagePreview extends JFrame implements ActionListener
      */
     public ImagePreview(ArrayList<File> images)
     {
+        this.setTitle("Image Preview");
+        this.setIconImage(UploaderFrame.IMAGE_ICON.getImage());
+
         this.imageIndex = 0;
         this.images = images;
         this.imagesLoaded = new ArrayList<Image>();
@@ -85,7 +88,6 @@ public class ImagePreview extends JFrame implements ActionListener
         menuBar.add(imageCount);
         this.add(imagePanel);
         this.setJMenuBar(menuBar);
-        this.setIconImage(UploaderFrame.IMAGE_ICON.getImage());
 
         loadImage();
         buttonStatusUpdate();
