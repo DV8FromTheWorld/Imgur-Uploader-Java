@@ -16,9 +16,11 @@
 
 package net.dv8tion;
 
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
 
+import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
 /**
@@ -48,5 +50,8 @@ public class ImagePanel extends JPanel
     public void setImage(Image image)
     {
         this.image = image;
+        ImageIcon icon = new ImageIcon(image);
+        this.setPreferredSize(new Dimension(icon.getIconWidth(), icon.getIconHeight()));
+        repaint();
     }
 }
