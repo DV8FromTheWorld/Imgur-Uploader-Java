@@ -460,7 +460,6 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
                             || Arrays.equals(Arrays.copyOf(signature, 2), BMP_SIGNATURE))
                     {
                         imagesToUpload.add(f);
-                        System.out.println("Found an image: " + f.getName());
                     }
                     fis.close();
                 }
