@@ -245,6 +245,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     {
         this.setTitle("Imgur Uploader");
         this.setSize(SIZE_GUI_X, SIZE_GUI_Y);
+        this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         this.setResizable(false);
         this.addWindowListener(this);
