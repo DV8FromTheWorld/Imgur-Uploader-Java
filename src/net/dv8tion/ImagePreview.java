@@ -21,8 +21,13 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -123,7 +128,23 @@ public class ImagePreview extends JFrame implements ActionListener
         Image i;
         if (imageIndex >= imagesLoaded.size())
         {
-            i = this.getToolkit().createImage(images.get(imageIndex).getAbsolutePath());
+            File imageFile = images.get(imageIndex);
+            if (imageIsBMP(imageFile))
+            {
+                try
+                {
+                    i = ImageIO.read(imageFile);
+                }
+                catch (IOException e)
+                {
+                    i = null;
+                    e.printStackTrace();
+                }
+            }
+            else
+            {
+                i = this.getToolkit().createImage(imageFile.getAbsolutePath());
+            }
             imagesLoaded.add(i);
         }
         else
@@ -143,5 +164,35 @@ public class ImagePreview extends JFrame implements ActionListener
         previousButton.setEnabled(imageIndex != 0);
         nextButton.setEnabled(imageIndex < images.size() - 1);
         imageCount.setText((imageIndex + 1) + " / " + images.size());
+    }
+
+    /**
+     * Helper method to determine if an image is BMP.
+     * 
+     * @param imageFile
+     *          The image to check.
+     * @return
+     *          True if the image is a BMP.
+     */
+    private boolean imageIsBMP(File imageFile)
+    {
+        byte[] signature = new byte[2];
+        FileInputStream fis;
+        try
+        {
+            fis = new FileInputStream(imageFile);
+            fis.read(signature);
+            fis.close();
+            return Arrays.equals(signature, UploaderFrame.BMP_SIGNATURE);
+        }
+        catch (FileNotFoundException e)
+        {
+            e.printStackTrace();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
