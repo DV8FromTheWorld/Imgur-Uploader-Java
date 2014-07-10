@@ -18,7 +18,6 @@ package net.dv8tion;
 
 import java.awt.AWTException;
 import java.awt.Desktop;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Insets;
@@ -26,7 +25,6 @@ import java.awt.MenuItem;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.PopupMenu;
-import java.awt.Rectangle;
 import java.awt.SystemTray;
 import java.awt.Toolkit;
 import java.awt.TrayIcon;
@@ -70,7 +68,7 @@ import javax.swing.text.StyledDocument;
  * Core class of the program.  Controls the central GUI and core logic.
  * 
  * @author DV8FromTheWorld (Austin Keener)
- * @version v1.0  July 8, 2014
+ * @version v1.0.1  July 10, 2014
  */
 @SuppressWarnings("serial")
 public class UploaderFrame extends JFrame implements ActionListener, WindowListener
@@ -133,7 +131,6 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     private ArrayList<String> imageIds;
     private String url;
     private boolean uploading;
-    private Rectangle currentLoc;
 
     /**
      * Creates a new UploaderFrame GUI, completely setup.
@@ -249,14 +246,6 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         this.setResizable(false);
         this.addWindowListener(this);
-        this.addMouseListener(new MouseAdapter()
-        {
-            @Override
-            public void mousePressed(MouseEvent e)
-            {
-                updateLocation();
-            }
-        });
         
         panel = new JPanel();
         panel.setLayout(null);
@@ -502,16 +491,6 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     }
 
     /**
-     * Updates the location of the window for use in minimization logic.
-     */
-    private void updateLocation()
-    {
-        Point p = this.getLocationOnScreen();
-        Dimension d = this.getSize();
-        currentLoc = new Rectangle(p.x, p.y, d.width, d.height);
-    }
-
-    /**
      * Displays the link generated from the upload.
      * Enables the OpenBrowser and CopyLink buttons.
      */
@@ -678,7 +657,6 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     @Override
     public void windowActivated(WindowEvent ev)
     {
-        updateLocation();
         uploadButtonStatus();
     }
 
@@ -741,7 +719,10 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     public void windowIconified(WindowEvent ev)
     {
         Point mp = MouseInfo.getPointerInfo().getLocation();
-        if (currentLoc.contains(mp))
+        Point loc = this.getLocation();
+        mp.x -= loc.x;
+        mp.y -= loc.y;
+        if (contains(mp))
         {
             this.setVisible(false);
         }
