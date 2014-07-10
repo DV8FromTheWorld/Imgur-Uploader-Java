@@ -68,7 +68,7 @@ import javax.swing.text.StyledDocument;
  * Core class of the program.  Controls the central GUI and core logic.
  * 
  * @author DV8FromTheWorld (Austin Keener)
- * @version v1.0.1  July 10, 2014
+ * @version v1.1  July 10, 2014
  */
 @SuppressWarnings("serial")
 public class UploaderFrame extends JFrame implements ActionListener, WindowListener
@@ -166,7 +166,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         }
         else if (source == btnCustomCapture)
         {
-            //open custom capture window.
+            new ScreenCapture().setVisible(true);
         }
         else if (source == btnOpenBrowser)
         {
