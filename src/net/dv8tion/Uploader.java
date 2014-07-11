@@ -23,9 +23,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
@@ -34,10 +34,13 @@ import javax.xml.bind.DatatypeConverter;
  * Controls all interface with the web and the Imgur API.
  * 
  * @author DV8FromTheWorld (Austin Keener)
- * @version v1.0  June 27, 2014
+ * @version v1.1  July 11, 2014
  */
 public class Uploader
 {
+    public static final String UPLOAD_API_URL = "https://api.imgur.com/3/image";
+    public static final String ALBUM_API_URL = "https://api.imgur.com/3/album";
+
     //CHANGE TO @CLIENT_ID@ and replace with buildscript.
     private final static String CLIENT_ID = "efce6070269a7f1";
 
@@ -53,7 +56,7 @@ public class Uploader
      */
     public static String upload(File file)
     {
-        HttpURLConnection conn = getHttpConnection("https://api.imgur.com/3/image");
+        HttpURLConnection conn = getHttpConnection(UPLOAD_API_URL);
         writeToConnection(conn, "image=" + toBase64(file));
         return getResponse(conn);
     }
@@ -69,7 +72,7 @@ public class Uploader
      */
     public static String createAlbum(List<String> imageIds)
     {
-        HttpURLConnection conn = getHttpConnection("https://api.imgur.com/3/album");
+        HttpURLConnection conn = getHttpConnection(ALBUM_API_URL);
         String ids = "";
         for (String id : imageIds)
         {
@@ -103,9 +106,8 @@ public class Uploader
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            throw new WebException(StatusCode.UNKNOWN_ERROR, e);
         }
-        return null;
     }
     
     /**
@@ -130,15 +132,14 @@ public class Uploader
             conn.connect();
             return conn;
         }
-        catch (MalformedURLException e)
+        catch (UnknownHostException e)
         {
-            e.printStackTrace();
+            throw new WebException(StatusCode.UNKNOWN_HOST, e);
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            throw new WebException(StatusCode.UNKNOWN_ERROR, e);
         }
-        return null;
     }
     
     /**
@@ -161,7 +162,7 @@ public class Uploader
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            throw new WebException(StatusCode.UNKNOWN_ERROR, e);
         }
     }
     
@@ -179,6 +180,10 @@ public class Uploader
         BufferedReader reader;
         try
         {
+            if (conn.getResponseCode() != StatusCode.SUCCESS.getHttpCode())
+            {
+                throw new WebException(conn.getResponseCode());
+            }
             reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             String line;
             while ((line = reader.readLine()) != null)
@@ -189,7 +194,11 @@ public class Uploader
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            throw new WebException(StatusCode.UNKNOWN_ERROR, e);
+        }
+        if (str.toString().equals(""))
+        {
+            throw new WebException(StatusCode.UNKNOWN_ERROR);
         }
         return str.toString();
     }
