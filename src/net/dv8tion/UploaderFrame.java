@@ -61,6 +61,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.SwingWorker;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
@@ -69,7 +71,7 @@ import javax.swing.text.StyledDocument;
  * Core class of the program.  Controls the central GUI and core logic.
  * 
  * @author DV8FromTheWorld (Austin Keener)
- * @version v1.2  July 16, 2014
+ * @version v1.3  July 16, 2014
  */
 @SuppressWarnings("serial")
 public class UploaderFrame extends JFrame implements ActionListener, WindowListener
@@ -141,6 +143,38 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     }
 
     /**
+     * Sets the look and feel of the Program's GUI.
+     *
+     * @param system
+     *          If true, will use the Look and Feel of the OS.
+     */
+    public static void setLookAndFeel(boolean system)
+    {
+        try
+        {
+            UIManager.setLookAndFeel(
+                    system ? UIManager.getSystemLookAndFeelClassName()
+                            : UIManager.getCrossPlatformLookAndFeelClassName());
+        }
+        catch (ClassNotFoundException e)
+        {
+            e.printStackTrace();
+        }
+        catch (InstantiationException e)
+        {
+            e.printStackTrace();
+        }
+        catch (IllegalAccessException e)
+        {
+            e.printStackTrace();
+        }
+        catch (UnsupportedLookAndFeelException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Controls what happens when any of the buttons are pressed.
      * 
      * @param e
@@ -162,7 +196,9 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         }
         else if (source == btnCustomCapture)
         {
+            UploaderFrame.setLookAndFeel(false);
             new ScreenCapture().setVisible(true);
+            UploaderFrame.setLookAndFeel(true);
         }
         else if (source == btnOpenBrowser)
         {
@@ -237,13 +273,14 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
      */
     private void initVisualComponents()
     {
+        setLookAndFeel(true);
         this.setTitle("Imgur Uploader");
         this.setSize(SIZE_GUI_X, SIZE_GUI_Y);
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         this.setResizable(false);
         this.addWindowListener(this);
-        
+
         panel = new JPanel();
         panel.setLayout(null);
 
