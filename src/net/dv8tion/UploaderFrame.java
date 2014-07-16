@@ -525,7 +525,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
                 {
 
                     @Override
-                    public String doInBackground() throws Exception
+                    protected String doInBackground() throws Exception
                     {
                         File imageFile = imagesToUpload.get(0);
                         for (int attempt = 1; attempt <= Uploader.MAX_UPLOAD_ATTEMPTS; attempt++)
@@ -551,7 +551,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
                     }
                     
                     @Override
-                    public void done()
+                    protected void done()
                     {
                         try
                         {
@@ -581,7 +581,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         return new SwingWorker<String, Void>()
                 {
                     @Override
-                    public String doInBackground() throws Exception
+                    protected String doInBackground() throws Exception
                     {
                         boolean uploadCanceled = false;
                         File imageFile;
@@ -647,7 +647,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
                     }
                     
                     @Override
-                    public void done()
+                    protected void done()
                     {
                         try
                         {
