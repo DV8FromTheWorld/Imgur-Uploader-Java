@@ -84,11 +84,6 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
     {
         UploaderFrame f = new UploaderFrame();
         f.setVisible(true);
-//        f.imageIds.add("0AJX5Kc");
-//        f.imageIds.add("1pvAMrc");
-//        f.imageIds.add("T7FIUlT");
-//        SwingWorker s = f.getAlbumWorker();
-//        s.run();
     }
 
     public static final Clipboard CLIPBOARD =
