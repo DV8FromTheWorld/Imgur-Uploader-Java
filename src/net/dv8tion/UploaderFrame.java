@@ -167,7 +167,8 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         else if (source == btnOpenBrowser)
         {
             Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
-            if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+            if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE))
+            {
                 try
                 {
                     desktop.browse(new URI(url));
@@ -369,8 +370,8 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         loadImages();
         if (imagesToUpload.size() > 1)
         {
-            lblLink.setText("Uploading " + imagesToUpload.size() + " images..."
-                + " Completed: 0%");
+            lblLink.setText("Uploading " + imagesToUpload.size() + " images...\n"
+                + "Completed: 0%");
             getAlbumWorker().execute();
         }
         else
@@ -576,9 +577,9 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
      * @return
      *          A new instance of the Album Swing Worker.
      */
-    private SwingWorker<String, Void> getAlbumWorker()
+    private SwingWorker<String, Integer> getAlbumWorker()
     {
-        return new SwingWorker<String, Void>()
+        return new SwingWorker<String, Integer>()
                 {
                     @Override
                     protected String doInBackground() throws Exception
@@ -587,6 +588,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
                         File imageFile;
                         for (int i = 0; !uploadCanceled && i < imagesToUpload.size(); i++)
                         {
+                            this.publish((int)(((double) i) / imagesToUpload.size() * 100));
                             imageFile = imagesToUpload.get(i);
                             for (int attempt = 1; attempt <= Uploader.MAX_UPLOAD_ATTEMPTS; attempt++)
                             {
@@ -663,6 +665,14 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
                         {
                             e.printStackTrace();
                         }
+                    }
+
+                    @Override
+                    protected void process(List<Integer> chunks)
+                    {
+                        lblLink.setText(
+                                String.format("Uploading %d images...\nCompleted: %d%%",
+                                        imagesToUpload.size(), chunks.get(0)));
                     }
                 };
     }
