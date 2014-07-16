@@ -34,12 +34,13 @@ import javax.xml.bind.DatatypeConverter;
  * Controls all interface with the web and the Imgur API.
  * 
  * @author DV8FromTheWorld (Austin Keener)
- * @version v1.1  July 11, 2014
+ * @version v1.1.1  July 16, 2014
  */
 public class Uploader
 {
     public static final String UPLOAD_API_URL = "https://api.imgur.com/3/image";
     public static final String ALBUM_API_URL = "https://api.imgur.com/3/album";
+    public static final int MAX_UPLOAD_ATTEMPTS = 3;
 
     //CHANGE TO @CLIENT_ID@ and replace with buildscript.
     private final static String CLIENT_ID = "efce6070269a7f1";

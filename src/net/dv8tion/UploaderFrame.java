@@ -43,6 +43,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -68,7 +69,7 @@ import javax.swing.text.StyledDocument;
  * Core class of the program.  Controls the central GUI and core logic.
  * 
  * @author DV8FromTheWorld (Austin Keener)
- * @version v1.1  July 10, 2014
+ * @version v1.2  July 16, 2014
  */
 @SuppressWarnings("serial")
 public class UploaderFrame extends JFrame implements ActionListener, WindowListener
@@ -499,9 +500,22 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         uploading = false;
         lblLink.setText(url);
         uploadButtonStatus();
-        btnOpenBrowser.setEnabled(true);
-        btnCopyLink.setEnabled(true);
         clearImages();
+        Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+        if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE))
+        {
+            try
+            {
+                new URI(url);
+                btnOpenBrowser.setEnabled(true);
+                btnCopyLink.setEnabled(true);
+            }
+            catch (URISyntaxException e)
+            {
+                btnOpenBrowser.setEnabled(false);
+                btnCopyLink.setEnabled(false);
+            }
+        }
     }
 
     /**
@@ -518,7 +532,27 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
                     @Override
                     public String doInBackground() throws Exception
                     {
-                        return getLink(Uploader.upload(imagesToUpload.get(0)));
+                        File imageFile = imagesToUpload.get(0);
+                        for (int attempt = 1; attempt <= Uploader.MAX_UPLOAD_ATTEMPTS; attempt++)
+                        {
+                            try
+                            {
+                                return getLink(Uploader.upload(imagesToUpload.get(0)));
+                            }
+                            catch (WebException e)
+                            {
+                                if (attempt >= Uploader.MAX_UPLOAD_ATTEMPTS)
+                                {
+                                    switch (showUploadError(e, imageFile, false))
+                                    {
+                                        case JOptionPane.YES_OPTION:
+                                            attempt = 1;
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                        return "Upload was canceled due to error";
                     }
                     
                     @Override
@@ -554,11 +588,67 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
                     @Override
                     public String doInBackground() throws Exception
                     {
-                        for (File f : imagesToUpload)
+                        boolean uploadCanceled = false;
+                        File imageFile;
+                        for (int i = 0; !uploadCanceled && i < imagesToUpload.size(); i++)
                         {
-                            imageIds.add(getId(Uploader.upload(f)));
+                            imageFile = imagesToUpload.get(i);
+                            for (int attempt = 1; attempt <= Uploader.MAX_UPLOAD_ATTEMPTS; attempt++)
+                            {
+                                try
+                                {
+                                    imageIds.add(getId(Uploader.upload(imageFile)));
+                                    break;
+                                }
+                                catch (WebException e)
+                                {
+                                    if (attempt >= Uploader.MAX_UPLOAD_ATTEMPTS)
+                                    {
+                                        switch (showUploadError(e, imageFile, true))
+                                        {
+                                            case JOptionPane.YES_OPTION:
+                                                attempt = 1;
+                                                break;
+                                            case JOptionPane.CANCEL_OPTION:
+                                                uploadCanceled = true;
+                                                break;
+                                        }
+                                    }
+                                }
+                            }
                         }
-                        return getId(Uploader.createAlbum(imageIds));
+                        if (imageIds.size() == 0)
+                        {
+                            return "No images uploaded succesfully";
+                        }
+                        if (uploadCanceled)
+                        {
+                            return "Album upload canceled due to error";
+                        }
+                        for (int attempt = 1; attempt <= Uploader.MAX_UPLOAD_ATTEMPTS; attempt++)
+                        {
+                            try
+                            {
+                                return "https://imgur.com/a/" + getId(Uploader.createAlbum(imageIds));
+                            }
+                            catch (WebException e)
+                            {
+                                if (attempt >= Uploader.MAX_UPLOAD_ATTEMPTS)
+                                {
+                                    int result = JOptionPane.showConfirmDialog(null,
+                                                "Images uploaded successfully, but could not be put into an album.\n" +
+                                                "This was caused by the following error:\n" +
+                                                        "              [" + e.getMessage() + "]\n" +
+                                                "Would you like to attempt to put them into an album again?",
+                                                "Album Creation Error", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                                    if (result == JOptionPane.YES_OPTION)
+                                    {
+                                        attempt = 0;
+                                    }
+                                }
+                            }
+                        }
+                        return "Album creation canceled due to error";
                     }
                     
                     @Override
@@ -566,7 +656,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
                     {
                         try
                         {
-                            url = "https://imgur.com/a/" + get();
+                            url = get();
                             imageIds.clear();
                             uploadComplete();
                         }
@@ -646,6 +736,47 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
             this.dispose();
             System.exit(0);
         }
+    }
+
+    /**
+     * Displays a message box informing the user that an image failed to upload.
+     * The user can choose to try uploading the image again, or to skip it.
+     *
+     * If the album boolean field is true, then the user will be presented with the
+     * option to cancel the entire album upload.
+     *
+     * @param error
+     *          The WebException that occurred.
+     * @param imageFile
+     *          The image file that failed to upload.
+     * @param album
+     *          True if the image that is being upload is part of an album upload.
+     * @return
+     *          JOptionPane.YES_OPTION - specifies that uploading should be attempted again.
+     *          JOptionPane.NO_OPTION  - specifies that the image should be skipped.
+     *          JOptionPane.CANCEL_OPTION - specifies that the entire album upload should be canceled.
+     */
+    private int showUploadError(WebException error, File imageFile, boolean album)
+    {
+        int result = JOptionPane.showConfirmDialog(null,
+                "Uploader encountered the following problem:\n" +
+                        "              ["+ error.getMessage() + "]\n" +
+                "while attempting to upload:\n" +
+                        "         " + imageFile.getAbsolutePath() + " \n" +
+                "Would you like to try uploading the image again?", "Uploader Error",
+                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (result == JOptionPane.YES_OPTION)
+        {
+            return JOptionPane.YES_OPTION;
+        }
+        if (!album)
+        {
+            return JOptionPane.NO_OPTION;
+        }
+        result = JOptionPane.showConfirmDialog(null,
+                "Would you like to cancel the entire upload?", "Uploader Error",
+                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        return result == JOptionPane.YES_OPTION ? JOptionPane.CANCEL_OPTION : result;
     }
 
     /**
