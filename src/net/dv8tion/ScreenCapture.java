@@ -36,7 +36,7 @@ import javax.swing.JRootPane;
  * part of the screen, and copy that screenshot to the System Clipboard.
  * 
  * @author DV8FromTheWorld (Austin Keener)
- * @version v1.0  July 10, 2014
+ * @version v1.0.1  July 17, 2014
  */
 @SuppressWarnings("serial")
 public class ScreenCapture extends JFrame
@@ -83,27 +83,27 @@ public class ScreenCapture extends JFrame
      * Captures the currently selected area of the screen and sends it to the 
      * System Clipboard as an image.
      * 
-     * Sets the capture button non-visible so it is not captured in the screenshot.
+     * Sets the capture gui non-visible so it is not captured in the screenshot.
      */
     private void captureArea()
     {
-        btnCapture.setVisible(false);
+        final Point loc = pnlCapture.getLocationOnScreen();
+        this.setVisible(false);
         this.repaint();
 
         //We run the screen capture in a different thread so that we can wait while
-        //the button is becoming invisible. (We don't want the button in the image).
+        //the gui frame is becoming invisible. (We don't want the button in the image).
         new Thread(new Runnable() 
         {
             @Override
             public void run()
             {
                 Robot r;
-                Point loc = pnlCapture.getLocationOnScreen();
                 Rectangle imageArea = new Rectangle(
                         loc.x, loc.y, pnlCapture.getWidth(), pnlCapture.getHeight());
                 try
                 {
-                    Thread.sleep(20);
+                    Thread.sleep(200);
                     r = new Robot();            
                     BufferedImage i = r.createScreenCapture(imageArea);
                     UploaderFrame.CLIPBOARD.setContents(new ClipboardImage(i), null);
@@ -116,7 +116,7 @@ public class ScreenCapture extends JFrame
                 {
                     e.printStackTrace();
                 }
-                btnCapture.setVisible(true);
+                ScreenCapture.this.setVisible(true);
             }
         }).start();        
     }
