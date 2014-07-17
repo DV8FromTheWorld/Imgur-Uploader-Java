@@ -71,7 +71,7 @@ import javax.swing.text.StyledDocument;
  * Core class of the program.  Controls the central GUI and core logic.
  * 
  * @author DV8FromTheWorld (Austin Keener)
- * @version v1.3  July 16, 2014
+ * @version v1.3.1  July 17, 2014
  */
 @SuppressWarnings("serial")
 public class UploaderFrame extends JFrame implements ActionListener, WindowListener
@@ -360,6 +360,11 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         panel.add(lblUploadMessage);
         this.add(panel);
         this.setIconImage(IMAGE_ICON.getImage());
+
+        if (!SystemTray.isSupported())
+        {
+            return;
+        }
 
         menuShow = new MenuItem("Show");
         menuShow.addActionListener(this);
@@ -895,7 +900,7 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         Point loc = this.getLocation();
         mp.x -= loc.x;
         mp.y -= loc.y;
-        if (contains(mp))
+        if (contains(mp) && trayIcon != null)
         {
             this.setVisible(false);
         }
