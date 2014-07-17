@@ -71,7 +71,7 @@ import javax.swing.text.StyledDocument;
  * Core class of the program.  Controls the central GUI and core logic.
  * 
  * @author DV8FromTheWorld (Austin Keener)
- * @version v1.3.1  July 17, 2014
+ * @version v1.3.2  July 17, 2014
  */
 @SuppressWarnings("serial")
 public class UploaderFrame extends JFrame implements ActionListener, WindowListener
@@ -423,9 +423,12 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
         }
         btnUpload.setEnabled(false);
         btnPreview.setEnabled(false);
-        menuUpload.setEnabled(false);
         btnOpenBrowser.setEnabled(false);
         btnCopyLink.setEnabled(false);
+        if (menuUpload != null)
+        {
+            menuUpload.setEnabled(false);
+        }
     }
     
     /**
@@ -515,16 +518,22 @@ public class UploaderFrame extends JFrame implements ActionListener, WindowListe
             if (clipboardContainsImage())
             {
                 btnUpload.setEnabled(true);
-                menuUpload.setEnabled(true);
                 btnPreview.setEnabled(true);
                 lblUploadMessage.setText("");
+                if (menuUpload != null)
+                {
+                    menuUpload.setEnabled(true);
+                }
             }
             else
             {
                 btnUpload.setEnabled(false);
-                menuUpload.setEnabled(false);
                 btnPreview.setEnabled(false);
                 lblUploadMessage.setText(UPLOAD_MESSAGE);
+                if (menuUpload != null)
+                {
+                    menuUpload.setEnabled(false);
+                }
             }
         }
     }
