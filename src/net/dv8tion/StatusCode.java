@@ -21,7 +21,7 @@ package net.dv8tion;
  * creating and catching WebExceptions.
  *
  * @author DV8FromTheWorld (Austin Keener)
- * @version v1.0  July 11, 2014
+ * @version v1.0.0  July 16, 2014
  */
 public enum StatusCode
 {

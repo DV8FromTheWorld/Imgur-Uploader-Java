@@ -20,7 +20,7 @@ package net.dv8tion;
  * Custom exception class that handles Web Exceptions.
  *
  * @author DV8FromTheWorld (Austin Keener)
- * @version v1.0  July 11, 2014
+ * @version v1.0.0  July 16, 2014
  */
 @SuppressWarnings("serial")
 public class WebException extends RuntimeException

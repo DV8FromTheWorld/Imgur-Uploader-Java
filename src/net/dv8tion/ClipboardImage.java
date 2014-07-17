@@ -25,7 +25,7 @@ import java.awt.datatransfer.UnsupportedFlavorException;
  * Transferable data object that handles images for the System Clipboard.
  * 
  * @author DV8FromTheWorld (Austin Keener)
- * @version v1.0  July 10, 2014
+ * @version v1.0.0  July 16, 2014
  */
 public class ClipboardImage implements Transferable
 {

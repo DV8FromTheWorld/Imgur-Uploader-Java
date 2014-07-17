@@ -27,7 +27,7 @@ import javax.swing.JPanel;
  * Java panel to handle Image display.
  * 
  * @author DV8FromTheWorld (Austin Keener)
- * @version v1.0  July 8, 2014
+ * @version v1.0.0  July 16, 2014
  */
 @SuppressWarnings("serial")
 public class ImagePanel extends JPanel

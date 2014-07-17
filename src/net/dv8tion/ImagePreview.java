@@ -37,7 +37,7 @@ import javax.swing.JMenuBar;
  * Provides functionality to view images before uploading them.
  * 
  * @author DV8FromTheWorld (Austin Keener)
- * @version v1.1  July 9, 2014
+ * @version v1.0.0  July 16, 2014
  *
  */
 @SuppressWarnings("serial")

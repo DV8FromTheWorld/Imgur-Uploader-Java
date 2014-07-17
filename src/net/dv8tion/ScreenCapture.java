@@ -36,7 +36,7 @@ import javax.swing.JRootPane;
  * part of the screen, and copy that screenshot to the System Clipboard.
  * 
  * @author DV8FromTheWorld (Austin Keener)
- * @version v1.0.1  July 17, 2014
+ * @version v1.0.3  July 17, 2014
  */
 @SuppressWarnings("serial")
 public class ScreenCapture extends JFrame

@@ -34,7 +34,7 @@ import javax.xml.bind.DatatypeConverter;
  * Controls all interface with the web and the Imgur API.
  * 
  * @author DV8FromTheWorld (Austin Keener)
- * @version v1.1.1  July 16, 2014
+ * @version v1.0.0  July 16, 2014
  */
 public class Uploader
 {

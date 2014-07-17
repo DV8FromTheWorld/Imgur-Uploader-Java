@@ -71,7 +71,7 @@ import javax.swing.text.StyledDocument;
  * Core class of the program.  Controls the central GUI and core logic.
  * 
  * @author DV8FromTheWorld (Austin Keener)
- * @version v1.3.2  July 17, 2014
+ * @version v1.0.2  July 17, 2014
  */
 @SuppressWarnings("serial")
 public class UploaderFrame extends JFrame implements ActionListener, WindowListener
